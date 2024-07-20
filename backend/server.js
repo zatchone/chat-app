@@ -1,36 +1,37 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import cookieparser from 'cookie-parser';
-
-import authRoutes from './routes/auth.routes.js'; 
+import cookieParser from 'cookie-parser';
+import authRoutes from './routes/auth.routes.js';
 import messageRoutes from './routes/message.routes.js';
 import userRoutes from './routes/user.routes.js';
-
 import connectToMongoDB from './db/connectToMongoDB.js';
-
-
-const app = express();
-dotenv.config();
-
+import { app, server } from './socket/socket.js'
 const PORT = process.env.PORT || 5000;
 
-// Connect to MongoDB
-connectToMongoDB();
+dotenv.config();
 
-// Middleware to parse JSON requests
+// Middleware
 app.use(express.json());
-app.use(cookieparser());
+app.use(cookieParser());
 
-// Define routes
+// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/messages', messageRoutes);
-app.use('/api/users',userRoutes);
+app.use('/api/users', userRoutes);
 
-app.get('/', (req, res) => {
-  res.send('Hello World!');
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ error: 'Internal Server Error' });
 });
 
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Listening on port ${PORT}`);
+// Start server
+server.listen(PORT, async () => {
+  try {
+    await connectToMongoDB();
+    console.log(`Server running on port ${PORT}`);
+  } catch (error) {
+    console.error('Failed to connect to MongoDB:', error);
+    process.exit(1);
+  }
 });
