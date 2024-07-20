@@ -15,6 +15,7 @@ export const SocketContextProvider = ({ children }) => {
 
 	useEffect(() => {
 		if (authUser) {
+			// replace this url with the render url and deploy
 			const socket = io("http://localhost:5000", {
 				query: {
 					userId: authUser._id,
